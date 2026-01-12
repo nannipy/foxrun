@@ -2,22 +2,26 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Installa le dipendenze di sistema
+# Install system dependencies including curl for healthcheck
 RUN apt-get update && apt-get install -y \
     gcc \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copia i file di dipendenze
+# Copy dependency files
 COPY requirements.txt .
 
-# Installa le dipendenze Python
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copia il codice dell'applicazione
+# Copy application code
 COPY app/ ./app/
 
-# Esponi la porta
+# Create data directory with proper permissions
+RUN mkdir -p /app/data && chmod 777 /app/data
+
+# Expose port
 EXPOSE 8000
 
-# Comando per avviare l'applicazione
+# Start application
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"] 

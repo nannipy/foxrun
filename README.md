@@ -2,7 +2,7 @@
    <h1>FOXRUN</h1>
 </div>
 
-<img src="FOXRUN-logo.png" alt="Fox Run Analyzer Logo" width="100" height="100" style="display: block; margin: auto;"  align="center" />
+<img src="frontend/public/FOXRUN-logo.png" alt="Fox Run Analyzer Logo" width="100" height="100" style="display: block; margin: auto;"  align="center" />
 
 Un'applicazione web full-stack per analizzare le performance di corsa utilizzando i dati di Strava.
 
