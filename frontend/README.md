@@ -1,269 +1,264 @@
-<div align="center">
-   <h1>FOXRUN</h1>
-</div>
+# FoxRun Frontend
 
-<img src="public/FOXRUN-logo.png" alt="Fox Run Analyzer Logo" width="100" height="100" style="display: block; margin: auto;"  align="center" />
-
-Un'applicazione web full-stack per analizzare le performance di corsa utilizzando i dati di Strava.
-
-## 🚀 Caratteristiche
-
-- **Autenticazione Strava**: Connessione sicura tramite OAuth2
-- **Sincronizzazione Dati**: Download automatico delle attività da Strava
-- **Dashboard Interattivo**: Visualizzazione delle metriche chiave e tendenze
-- **Elenco Attività**: Tabella completa con filtri e ricerca
-- **Analisi Dettagliata**: Grafici e statistiche per ogni attività
-- **Interfaccia Moderna**: UI responsive con Tailwind CSS e Radix UI
+Frontend React per l'applicazione FoxRun - un'analisi avanzata delle performance di corsa basata sui dati Strava.
 
 ## 🛠️ Stack Tecnologico
 
-### Frontend
 - **React 18** con TypeScript
-- **Vite** per il build e development
-- **Tailwind CSS** per lo styling
-- **Radix UI** per i componenti
-- **Recharts** per i grafici
-- **React Query** per la gestione dello stato
-- **React Router** per la navigazione
+- **Vite** - Build tool e dev server
+- **Bun** - Runtime e package manager
+- **Tailwind CSS** - Styling con liquid glass design
+- **Radix UI** - Componenti accessibili
+- **React Router** - Navigazione
+- **React Query** - State management e caching
+- **Recharts** - Grafici e visualizzazioni
+- **Leaflet** - Mappe interattive
+- **Zod** - Validazione schemi
 
-### Backend
-- **FastAPI** (Python)
-- **SQLAlchemy** per l'ORM
-- **SQLite** per il database
-- **Stravalib** per l'integrazione con Strava
-- **Pandas/NumPy** per l'analisi dei dati
+## 📁 Struttura Progetto
 
-## 📋 Prerequisiti
+```
+frontend/
+├── src/
+│   ├── components/          # Componenti riutilizzabili
+│   │   ├── ui/             # Componenti UI di base (Radix)
+│   │   ├── Layout.tsx      # Layout principale
+│   │   ├── Header.tsx      # Header con navigazione
+│   │   ├── AppSidebar.tsx  # Sidebar navigazione
+│   │   ├── MetricCard.tsx  # Card per metriche
+│   │   └── ...
+│   ├── pages/              # Pagine dell'applicazione
+│   │   ├── Index.tsx       # Landing page / Dashboard
+│   │   ├── Activities.tsx  # Lista attività
+│   │   ├── ActivityDetail.tsx
+│   │   ├── Trends.tsx
+│   │   ├── Performance.tsx
+│   │   ├── Routes.tsx
+│   │   ├── Calendar.tsx
+│   │   └── Settings.tsx
+│   ├── hooks/              # Custom React hooks
+│   │   ├── useAuth.ts      # Autenticazione
+│   │   ├── useActivities.ts # Gestione attività
+│   │   ├── useMyData.ts    # Dati utente
+│   │   └── use-toast.ts    # Notifiche toast
+│   ├── lib/                # Utilità e helpers
+│   │   ├── api.ts          # Client API
+│   │   └── utils.ts        # Funzioni utility
+│   ├── App.tsx             # Componente root
+│   ├── main.tsx            # Entry point
+│   └── index.css           # Stili globali
+├── public/                 # Asset statici
+├── package.json
+└── bun.lockb
+```
 
-- Node.js 18+ e npm
-- Python 3.11+
-- Account Strava Developer
+## 🚀 Setup Sviluppo
 
-## 🔧 Configurazione
+### Prerequisiti
 
-### 1. Setup Strava Developer
+- **Bun** runtime installato ([guida installazione](https://bun.sh))
+- Backend API in esecuzione su `http://localhost:8000`
 
-1. Vai su [Strava API Settings](https://www.strava.com/settings/api)
-2. Crea una nuova applicazione
-3. Imposta l'URL di redirect a `http://localhost:3000/auth/callback`
-4. Prendi nota di `Client ID` e `Client Secret`
+### Installazione
 
-### 2. Configurazione Ambiente
+```bash
+# Installa le dipendenze
+bun install
+```
 
-Crea un file `.env` nella root del progetto:
+### Variabili d'Ambiente
+
+Crea un file `.env` nella root del frontend:
 
 ```env
-# Strava API
-STRAVA_CLIENT_ID=your_client_id
-STRAVA_CLIENT_SECRET=your_client_secret
-
-# Frontend
 VITE_API_URL=http://localhost:8000
 ```
 
-### 3. Installazione Dipendenze
+### Comandi Disponibili
 
 ```bash
-# Frontend
-npm install
+# Sviluppo locale (http://localhost:5173)
+bun run dev
 
-# Backend
-cd backend
-pip install -r requirements.txt
+# Build per produzione
+bun run build
+
+# Build in modalità development
+bun run build:dev
+
+# Preview build di produzione
+bun run preview
+
+# Linting
+bun run lint
 ```
 
-## 🚀 Avvio dell'Applicazione
+## 🎨 Design System
 
-### Opzione 1: Docker Compose (Raccomandato)
+### Liquid Glass Aesthetic
 
-```bash
-docker-compose up --build
+Il design utilizza un approccio "liquid glass" con:
+- **Glassmorphism** - Effetti vetro sfumato
+- **Gradients dinamici** - Transizioni di colore fluide
+- **Micro-animations** - Animazioni sottili per interattività
+- **Dark mode** - Palette scura predominante
+
+### CSS Custom Properties
+
+Le variabili CSS personalizzate sono definite in `index.css`:
+
+```css
+/* Esempi */
+--primary: hsl(...)
+--gradient-primary: linear-gradient(...)
+--glass-bg: rgba(...)
 ```
 
-L'applicazione sarà disponibile su:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- API Docs: http://localhost:8000/docs
+### Componenti UI
 
-### Opzione 2: Sviluppo Locale
+I componenti base sono costruiti con **Radix UI** per garantire accessibilità e personalizzazione. Tutti i componenti si trovano in `src/components/ui/`.
 
-#### Backend
-```bash
-cd backend
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+## 📡 API Integration
+
+### Client API
+
+Il client API è configurato in `src/lib/api.ts` e usa `fetch` con gestione automatica di:
+- Base URL da variabili d'ambiente
+- JWT token headers
+- Error handling
+
+### React Query
+
+Utilizziamo `@tanstack/react-query` per:
+- **Caching** - Cache automatica delle risposte
+- **Refetching** - Aggiornamento automatico dati
+- **Optimistic updates** - UI reattiva
+
+Esempio:
+```typescript
+const { data, isLoading } = useQuery({
+  queryKey: ['activities'],
+  queryFn: () => fetchActivities()
+});
 ```
 
-#### Frontend
-```bash
-npm run dev
+## 🔐 Autenticazione
+
+L'autenticazione è gestita tramite:
+1. **OAuth2** con Strava (redirect flow)
+2. **JWT tokens** per API calls
+3. **localStorage** per persistenza sessione
+
+Hook principale: `useAuth.ts`
+
+```typescript
+const { user, login, logout, isAuthenticated } = useAuth();
 ```
 
-## 📱 Utilizzo
+## 🧩 Custom Hooks
 
-1. **Accesso**: Vai su http://localhost:3000
-2. **Autenticazione**: Clicca "Connetti con Strava" e autorizza l'applicazione
-3. **Sincronizzazione**: Le tue attività verranno scaricate automaticamente
-4. **Esplorazione**: Naviga tra Dashboard, Attività e altre sezioni
+### `useAuth.ts`
+Gestisce autenticazione, login/logout, e stato utente.
 
-## 🗂️ Struttura del Progetto
+### `useActivities.ts`
+Fetch e gestione lista attività con filtri e paginazione.
 
-```
-run-insights-unleashed/
-├── src/                    # Frontend React
-│   ├── components/         # Componenti UI
-│   ├── hooks/             # Custom hooks
-│   ├── lib/               # Utilità e API
-│   ├── pages/             # Pagine dell'applicazione
-│   └── ...
-├── backend/               # Backend FastAPI
-│   ├── app/
-│   │   ├── api/           # Endpoint API
-│   │   ├── core/          # Configurazione
-│   │   ├── db/            # Database
-│   │   ├── models/        # Modelli SQLAlchemy
-│   │   ├── schemas/       # Schemi Pydantic
-│   │   ├── services/      # Logica di business
-│   │   └── utils/         # Utilità
-│   └── requirements.txt
-├── docker-compose.yml
-└── README.md
-```
+### `useMyData.ts`
+Carica dati personalizzati e statistiche utente.
 
-## 🔌 API Endpoints
+### `use-toast.ts`
+Sistema di notifiche toast per feedback utente.
 
-### Autenticazione
-- `GET /auth/strava/authorize` - URL di autorizzazione Strava
-- `GET /auth/strava/callback` - Callback OAuth2
-- `GET /auth/user/{user_id}` - Dati utente
+## 🗺️ Routing
 
-### Attività
-- `POST /activities/sync/{user_id}` - Sincronizza attività
-- `GET /activities/{user_id}` - Lista attività
-- `GET /activities/{user_id}/activity/{activity_id}` - Dettaglio attività
-- `GET /activities/{user_id}/stats` - Statistiche utente
-- `GET /activities/{user_id}/trends` - Tendenze temporali
+Le rotte sono definite in `App.tsx`:
+
+| Path | Componente | Descrizione |
+|------|-----------|-------------|
+| `/` | Index | Landing / Dashboard |
+| `/activities` | Activities | Lista attività |
+| `/activity/:id` | ActivityDetail | Dettaglio singola attività |
+| `/trends` | Trends | Analisi tendenze |
+| `/performance` | Performance | Metriche performance |
+| `/routes` | Routes | Visualizzazione percorsi |
+| `/calendar` | Calendar | Vista calendario |
+| `/settings` | Settings | Impostazioni utente |
+| `/auth/callback` | AuthCallback | Callback OAuth Strava |
+
+## 📊 Grafici e Visualizzazioni
+
+### Recharts
+Utilizzato per grafici:
+- Line charts (tendenze nel tempo)
+- Bar charts (comparazioni)
+- Area charts (volumi)
+
+### Leaflet
+Mappe interattive per:
+- Visualizzazione percorsi attività
+- Polyline da dati GPS
+- Markers per punti di interesse
 
 ## 🧪 Testing
 
 ```bash
-# Backend
-cd backend
-pytest
+# Esegui test
+bun test
 
-# Frontend
-npm test
+# Watch mode
+bun test --watch
 ```
 
-## 📊 Funzionalità Implementate
+## 📦 Build e Deploy
 
-### ✅ Fase 1: Setup e Core Sync
-- [x] Configurazione FastAPI
-- [x] Autenticazione OAuth2 con Strava
-- [x] Modelli database SQLAlchemy
-- [x] Sincronizzazione attività base
-- [x] Frontend React con TypeScript
-- [x] Pagina di login/connessione Strava
+### Build Produzione
 
-### ✅ Fase 2: Dashboard e Elenco Attività
-- [x] Dashboard con metriche aggregate
-- [x] Grafici di tendenza con Recharts
-- [x] Tabella attività con filtri
-- [x] Paginazione e ricerca
+```bash
+bun run build
+```
 
-### 🔄 Fase 3: Dettaglio Attività (In Corso)
-- [ ] Mappa interattiva del percorso
-- [ ] Grafici dettagliati (ritmo, FC, cadenza)
-- [ ] Analisi dei laps/split
-- [ ] Analisi delle zone
+Output: `dist/` directory
 
-### 📋 Fase 4: Analisi Avanzata (Pianificata)
-- [ ] Comparazione attività
-- [ ] Record personali
-- [ ] Analisi delle tendenze avanzate
-- [ ] Impostazioni utente
+### Ottimizzazioni
+
+- **Code splitting** automatico per rotte
+- **Tree shaking** per ridurre bundle size
+- **Minification** con Terser
+- **Asset optimization** via Vite
+
+### Deploy su Vercel
+
+1. Configura root directory: `frontend`
+2. Build command: `bun run build`
+3. Output directory: `dist`
+4. Variabili d'ambiente: `VITE_API_URL`
+
+## 🐛 Debugging
+
+### Dev Tools
+
+- **React Developer Tools** - Ispeziona componenti
+- **React Query Devtools** - Monitora cache e queries
+- **Network tab** - Verifica chiamate API
+
+### Console Logging
+
+I log sono disabilitati in produzione. Usa:
+
+```typescript
+if (import.meta.env.DEV) {
+  console.log('Debug info');
+}
+```
+
+## 📚 Risorse Utili
+
+- [React Docs](https://react.dev)
+- [Vite Docs](https://vitejs.dev)
+- [Tailwind CSS](https://tailwindcss.com)
+- [Radix UI](https://www.radix-ui.com)
+- [React Query](https://tanstack.com/query)
 
 ## 🤝 Contribuire
 
-1. Fork il progetto
-2. Crea un branch per la feature (`git checkout -b feature/AmazingFeature`)
-3. Commit le modifiche (`git commit -m 'Add some AmazingFeature'`)
-4. Push al branch (`git push origin feature/AmazingFeature`)
-5. Apri una Pull Request
-
-## 🚀 Deployment su Vercel
-
-### Prerequisiti
-- Account Vercel
-- Repository GitHub/GitLab con il codice
-- Backend deployato (FastAPI su Vercel, Railway, o altro servizio)
-
-### Configurazione Variabili d'Ambiente
-
-1. **Copia il file `env.example` in `.env`**:
-```bash
-cp env.example .env
-```
-
-2. **Configura le variabili d'ambiente su Vercel**:
-   - Vai su [Vercel Dashboard](https://vercel.com/dashboard)
-   - Seleziona il tuo progetto
-   - Vai su "Settings" → "Environment Variables"
-   - Aggiungi le seguenti variabili:
-
-```env
-VITE_API_URL=https://your-backend-url.vercel.app
-VITE_STRAVA_CLIENT_ID=your_strava_client_id
-VITE_STRAVA_REDIRECT_URI=https://your-frontend-url.vercel.app/auth/callback
-VITE_USE_MOCK_DATA=false
-```
-
-### Deployment
-
-1. **Connetti il repository a Vercel**:
-   - Vai su [Vercel Dashboard](https://vercel.com/dashboard)
-   - Clicca "New Project"
-   - Importa il repository GitHub/GitLab
-   - Vercel rileverà automaticamente che è un progetto Vite
-
-2. **Configura il build**:
-   - Framework Preset: Vite
-   - Build Command: `npm run build`
-   - Output Directory: `dist`
-   - Install Command: `npm install`
-
-3. **Deploy**:
-   - Clicca "Deploy"
-   - Vercel buildera e deployerà automaticamente l'applicazione
-
-### Configurazione Strava
-
-Dopo il deployment, aggiorna l'URL di redirect su Strava:
-1. Vai su [Strava API Settings](https://www.strava.com/settings/api)
-2. Cambia l'URL di redirect da `http://localhost:3000/auth/callback` a `https://your-domain.vercel.app/auth/callback`
-
-### Note Importanti
-
-- **Backend**: Assicurati che il backend sia deployato e accessibile
-- **CORS**: Il backend deve permettere richieste dal dominio Vercel
-- **HTTPS**: Vercel fornisce automaticamente HTTPS
-- **Environment Variables**: Configura tutte le variabili necessarie su Vercel
-
-## 📄 Licenza
-
-Questo progetto è sotto licenza MIT. Vedi il file `LICENSE` per i dettagli.
-
-## 🆘 Supporto
-
-Per problemi o domande:
-1. Controlla la documentazione API su http://localhost:8000/docs
-2. Apri una issue su GitHub
-3. Controlla i log del backend per errori dettagliati
-
-## 🔮 Roadmap
-
-- [ ] Integrazione con altri servizi (Garmin, TrainingPeaks)
-- [ ] Analisi dei segmenti Strava
-- [ ] Piani di allenamento personalizzati
-- [ ] Notifiche e alert
-- [ ] Esportazione dati in CSV/PDF
-- [ ] App mobile (React Native)
+Consulta [CONTRIBUTING.md](../CONTRIBUTING.md) per le linee guida.
