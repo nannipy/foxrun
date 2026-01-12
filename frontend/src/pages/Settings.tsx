@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { apiService } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +11,16 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { UserAvatar } from '@/components/UserAvatar';
 import { 
@@ -28,14 +39,17 @@ import {
 } from 'lucide-react';
 
 export default function Settings() {
-  const { user, userId } = useAuth();
+  const { user, userId, logout } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
   
   // Stato per le impostazioni
   const [settings, setSettings] = useState({
@@ -60,6 +74,20 @@ export default function Settings() {
       syncInterval: 'daily',
     }
   });
+
+  // Query per caricare le impostazioni dal server
+  const { data: serverSettings, isLoading: settingsLoading } = useQuery({
+    queryKey: ['settings', userId],
+    queryFn: () => apiService.getUserSettings(userId!),
+    enabled: !!userId,
+  });
+
+  // Aggiorna le impostazioni locali quando arrivano dal server
+  useEffect(() => {
+    if (serverSettings) {
+      setSettings(serverSettings);
+    }
+  }, [serverSettings]);
 
   // Mutation per aggiornare la foto profilo
   const updateProfileImageMutation = useMutation({
@@ -104,6 +132,74 @@ export default function Settings() {
         variant: "destructive",
       });
     }
+  });
+
+  // Mutation per aggiornare l'avatar di Strava
+  const refreshStravaAvatarMutation = useMutation({
+    mutationFn: () => apiService.refreshStravaAvatar(userId!),
+    onSuccess: () => {
+      toast({
+        title: "Avatar aggiornato",
+        description: "L'avatar di Strava è stato aggiornato con successo.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['user', userId] });
+    },
+    onError: () => {
+      toast({
+        title: "Errore",
+        description: "Impossibile aggiornare l'avatar di Strava.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation per esportare i dati
+  const exportDataMutation = useMutation({
+    mutationFn: () => apiService.exportUserData(userId!),
+    onSuccess: (blob) => {
+      // Crea un link per il download e lo attiva
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `foxrun-export-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Esportazione completata",
+        description: "I tuoi dati sono stati esportati con successo.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Errore",
+        description: "Impossibile esportare i dati.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation per eliminare l'account
+  const deleteAccountMutation = useMutation({
+    mutationFn: (confirmation: string) => apiService.deleteAccount(userId!, confirmation),
+    onSuccess: () => {
+      toast({
+        title: "Account eliminato",
+        description: "Il tuo account è stato eliminato con successo.",
+      });
+      // Logout e redirect alla home
+      logout();
+      navigate('/');
+    },
+    onError: () => {
+      toast({
+        title: "Errore",
+        description: "Impossibile eliminare l'account.",
+        variant: "destructive",
+      });
+    },
   });
 
 
@@ -170,6 +266,17 @@ export default function Settings() {
 
   const handleSaveSettings = () => {
     updateSettingsMutation.mutate(settings);
+  };
+
+  const handleExportData = () => {
+    exportDataMutation.mutate();
+  };
+
+  const handleDeleteAccount = () => {
+    if (deleteConfirmation === 'DELETE') {
+      deleteAccountMutation.mutate(deleteConfirmation);
+      setShowDeleteDialog(false);
+    }
   };
 
   return (
@@ -326,139 +433,6 @@ export default function Settings() {
             </CardContent>
           </Card>
 
-          {/* Notifiche */}
-          <Card className="bg-gradient-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="h-5 w-5" />
-                Notifiche
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="email-notifications">Notifiche email</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Ricevi aggiornamenti via email
-                  </p>
-                </div>
-                <Switch
-                  id="email-notifications"
-                  checked={settings.notifications.email}
-                  onCheckedChange={(checked) => 
-                    handleSettingChange('notifications', 'email', checked)
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="push-notifications">Notifiche push</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Notifiche in tempo reale
-                  </p>
-                </div>
-                <Switch
-                  id="push-notifications"
-                  checked={settings.notifications.push}
-                  onCheckedChange={(checked) => 
-                    handleSettingChange('notifications', 'push', checked)
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="weekly-report">Report settimanale</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Riepilogo settimanale delle attività
-                  </p>
-                </div>
-                <Switch
-                  id="weekly-report"
-                  checked={settings.notifications.weeklyReport}
-                  onCheckedChange={(checked) => 
-                    handleSettingChange('notifications', 'weeklyReport', checked)
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="achievements">Notifiche risultati</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Avvisi per nuovi record e obiettivi
-                  </p>
-                </div>
-                <Switch
-                  id="achievements"
-                  checked={settings.notifications.achievements}
-                  onCheckedChange={(checked) => 
-                    handleSettingChange('notifications', 'achievements', checked)
-                  }
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Privacy */}
-          <Card className="bg-gradient-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                Privacy
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="public-profile">Profilo pubblico</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Rendi il tuo profilo visibile ad altri utenti
-                  </p>
-                </div>
-                <Switch
-                  id="public-profile"
-                  checked={settings.privacy.profilePublic}
-                  onCheckedChange={(checked) => 
-                    handleSettingChange('privacy', 'profilePublic', checked)
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="show-stats">Mostra statistiche</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Condividi le tue statistiche generali
-                  </p>
-                </div>
-                <Switch
-                  id="show-stats"
-                  checked={settings.privacy.showStats}
-                  onCheckedChange={(checked) => 
-                    handleSettingChange('privacy', 'showStats', checked)
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="show-activities">Mostra attività</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Condividi le tue attività con altri
-                  </p>
-                </div>
-                <Switch
-                  id="show-activities"
-                  checked={settings.privacy.showActivities}
-                  onCheckedChange={(checked) => 
-                    handleSettingChange('privacy', 'showActivities', checked)
-                  }
-                />
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Colonna laterale */}
@@ -529,52 +503,6 @@ export default function Settings() {
             </CardContent>
           </Card>
 
-          {/* Sincronizzazione */}
-          <Card className="bg-gradient-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Download className="h-5 w-5" />
-                Sincronizzazione
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="auto-sync">Sincronizzazione automatica</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Sincronizza automaticamente con Strava
-                  </p>
-                </div>
-                <Switch
-                  id="auto-sync"
-                  checked={settings.sync.autoSync}
-                  onCheckedChange={(checked) => 
-                    handleSettingChange('sync', 'autoSync', checked)
-                  }
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="sync-interval">Frequenza sincronizzazione</Label>
-                <Select
-                  value={settings.sync.syncInterval}
-                  onValueChange={(value) => 
-                    handleSettingChange('sync', 'syncInterval', value)
-                  }
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="hourly">Ogni ora</SelectItem>
-                    <SelectItem value="daily">Giornaliera</SelectItem>
-                    <SelectItem value="weekly">Settimanale</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Azioni */}
           <Card className="bg-gradient-card">
             <CardHeader>
@@ -599,29 +527,23 @@ export default function Settings() {
               <Button 
                 variant="outline" 
                 className="w-full"
-                onClick={() => {
-                  // Logica per esportare i dati
-                  toast({
-                    title: "Esportazione dati",
-                    description: "Funzionalità in sviluppo...",
-                  });
-                }}
+                onClick={handleExportData}
+                disabled={exportDataMutation.isPending}
               >
-                <Download className="h-4 w-4 mr-2" />
-                Esporta dati
+                {exportDataMutation.isPending ? (
+                  <>Esportazione...</>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4 mr-2" />
+                    Esporta dati
+                  </>
+                )}
               </Button>
               
               <Button 
                 variant="destructive" 
                 className="w-full"
-                onClick={() => {
-                  // Logica per eliminare account
-                  toast({
-                    title: "Elimina account",
-                    description: "Funzionalità in sviluppo...",
-                    variant: "destructive",
-                  });
-                }}
+                onClick={() => setShowDeleteDialog(true)}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Elimina account
@@ -630,6 +552,46 @@ export default function Settings() {
           </Card>
         </div>
       </div>
+
+      {/* Dialog di conferma eliminazione account */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sei assolutamente sicuro?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>Questa azione eliminerà permanentemente il tuo account e tutti i dati associati, inclusi:</p>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                <li>Tutte le attività sincronizzate</li>
+                <li>Le impostazioni e preferenze</li>
+                <li>La foto profilo</li>
+              </ul>
+              <p className="font-semibold text-destructive">Questa azione non può essere annullata.</p>
+              <div className="pt-4">
+                <Label htmlFor="delete-confirm">Digita DELETE per confermare</Label>
+                <Input
+                  id="delete-confirm"
+                  value={deleteConfirmation}
+                  onChange={(e) => setDeleteConfirmation(e.target.value)}
+                  placeholder="DELETE"
+                  className="mt-2"
+                />
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteConfirmation('')}>
+              Annulla
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAccount}
+              disabled={deleteConfirmation !== 'DELETE' || deleteAccountMutation.isPending}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {deleteAccountMutation.isPending ? 'Eliminazione...' : 'Elimina account'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 } 

@@ -87,18 +87,7 @@ export default function Activities() {
   const [loadingAll, setLoadingAll] = useState<boolean>(false);
   const [total, setTotal] = useState<number>(0);
 
-  // Carica la pagina corrente
-  useEffect(() => {
-    const fetchPage = async () => {
-      if (!user?.id) return;
-      const res = await apiService.getUserActivities(user.id, { skip: page * PAGE_SIZE, limit: PAGE_SIZE });
-      setPagedActivities(res.activities);
-      setTotal(res.total);
-    };
-    fetchPage();
-  }, [user?.id, page]);
-
-  // Carica tutte le attività (per test)
+  // Carica tutte le attività
   const handleLoadAll = async () => {
     if (!user?.id) return;
     setLoadingAll(true);
@@ -107,7 +96,7 @@ export default function Activities() {
     let totalFetched = 0;
     let totalCount = 0;
     do {
-      const res = await apiService.getUserActivities(user.id, { skip, limit: PAGE_SIZE });
+      const res = await apiService.getUserActivities({ skip, limit: PAGE_SIZE });
       all = all.concat(res.activities);
       totalFetched += res.activities.length;
       totalCount = res.total;
@@ -120,6 +109,25 @@ export default function Activities() {
     refetchStats();
     refetchTrends();
   };
+
+  // Auto-load all activities quando viene applicato un filtro o ricerca
+  useEffect(() => {
+    if ((searchTerm || typeFilter !== "all") && !allLoaded && !loadingAll && user?.id) {
+      handleLoadAll();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, typeFilter]);
+
+  // Carica la pagina corrente
+  useEffect(() => {
+    const fetchPage = async () => {
+      if (!user?.id) return;
+      const res = await apiService.getUserActivities({ skip: page * PAGE_SIZE, limit: PAGE_SIZE });
+      setPagedActivities(res.activities);
+      setTotal(res.total);
+    };
+    fetchPage();
+  }, [user?.id, page]);
 
 
   const filteredActivities = (allLoaded ? allActivities : pagedActivities).filter((activity) => {

@@ -241,13 +241,20 @@ class ApiService {
 
   // User settings and profile endpoints
   async updateProfileImage(userId: number, formData: FormData): Promise<{ message: string; profile_picture_url: string }> {
-    const url = `${API_BASE_URL}/auth/user/${userId}/profile-image`;
+    const url = `${API_BASE_URL}/auth/user/${userId}/upload-image`;
     console.log('[API] Upload profile image:', url);
+
+    const token = this.getToken();
+    const headers: HeadersInit = {};
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
 
     const response = await fetch(url, {
       method: 'POST',
+      headers,
       body: formData,
-      // Non includere Content-Type per FormData, il browser lo imposterà automaticamente
     });
 
     let responseBody;
@@ -266,10 +273,52 @@ class ApiService {
     return responseBody;
   }
 
+  async deleteProfileImage(userId: number): Promise<{ message: string }> {
+    return this.request(`/auth/user/${userId}/profile-image`, {
+      method: 'DELETE',
+    });
+  }
+
+  async refreshStravaAvatar(userId: number): Promise<{ message: string; strava_profile_url: string }> {
+    return this.request(`/auth/user/${userId}/refresh-strava-avatar`, {
+      method: 'POST',
+    });
+  }
+
+  async getUserSettings(userId: number): Promise<any> {
+    return this.request(`/auth/user/${userId}/settings`);
+  }
+
   async updateUserSettings(userId: number, settings: any): Promise<{ message: string }> {
     return this.request(`/auth/user/${userId}/settings`, {
       method: 'PUT',
       body: JSON.stringify(settings),
+    });
+  }
+
+  async exportUserData(userId: number): Promise<Blob> {
+    const url = `${API_BASE_URL}/auth/user/${userId}/export`;
+    const token = this.getToken();
+    const headers: HeadersInit = {};
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(url, {
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Export failed: ${response.status} ${response.statusText}`);
+    }
+
+    return response.blob();
+  }
+
+  async deleteAccount(userId: number, confirmation: string): Promise<{ message: string }> {
+    return this.request(`/auth/user/${userId}?confirmation=${confirmation}`, {
+      method: 'DELETE',
     });
   }
 }

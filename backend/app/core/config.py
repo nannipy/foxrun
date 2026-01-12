@@ -28,6 +28,11 @@ class Settings:
     
     # CORS settings
     allowed_origins: list = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173").split(",")
+    
+    # File upload settings
+    upload_dir: str = os.getenv("UPLOAD_DIR", "./uploads")
+    max_upload_size: int = int(os.getenv("MAX_UPLOAD_SIZE", str(5 * 1024 * 1024)))  # 5MB default
+    allowed_image_types: list = ["image/jpeg", "image/png", "image/webp"]
 
 
 settings = Settings() 
