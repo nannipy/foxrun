@@ -46,7 +46,7 @@ function getLocalStats(activities: any[]) {
   const total_distance = filtered.reduce((sum, a) => sum + (a.distance || 0), 0);
   const total_time = filtered.reduce((sum, a) => sum + (a.moving_time || 0), 0);
   const total_elevation = filtered.reduce((sum, a) => sum + (a.total_elevation_gain || 0), 0);
-  const average_pace = total_distance > 0 ? (total_time / 60) / (total_distance / 1000) : 0;
+  const average_pace = total_distance > 0 ? (total_time / total_distance) * 1000 / 60 : 0;
   // Nuovi conteggi
   const num_bike = activities.filter(a => a.type && a.type.toLowerCase() === 'ride').length;
   const num_tennis = activities.filter(a => a.type && a.type.toLowerCase() === 'workout').length;
@@ -316,7 +316,7 @@ export default function Activities() {
                   <TableHead>Tempo</TableHead>
                   <TableHead>Ritmo</TableHead>
                   <TableHead>Dislivello</TableHead>
-                  <TableHead>FC</TableHead>
+                  <TableHead>Avg FC</TableHead>
                   <TableHead>Azioni</TableHead>
                 </TableRow>
               </TableHeader>
@@ -363,7 +363,7 @@ export default function Activities() {
                         {formatDuration(activity.moving_time)}
                       </TableCell>
                       <TableCell>
-                        {activity.average_speed ? formatPace(1 / activity.average_speed * 1000) : "-"}
+                        {activity.average_speed ? formatPace((1 / activity.average_speed) * 1000 / 60) : "-"}
                       </TableCell>
                       <TableCell>
                         {activity.total_elevation_gain ? `${Math.round(activity.total_elevation_gain)}m` : "-"}

@@ -191,7 +191,7 @@ export default function Calendar() {
   const runActivities = monthActivities.filter(a => a.type && a.type.toLowerCase() === 'run');
   const totalRunDistance = runActivities.reduce((sum, a) => sum + (a.distance || 0), 0);
   const totalRunTime = runActivities.reduce((sum, a) => sum + (a.moving_time || 0), 0);
-  const avgPace = totalRunDistance > 0 ? (totalRunTime / 60) / (totalRunDistance / 1000) : 0;
+  const avgPace = totalRunDistance > 0 ? (totalRunTime / totalRunDistance) * 1000 / 60 : 0;
   
   if (isLoadingActivities) {
     return <div className="flex items-center justify-center h-64"><span>Caricamento attività...</span></div>;

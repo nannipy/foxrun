@@ -230,7 +230,10 @@ async def get_user_stats(
 
     average_pace = 0
     if run_stats and run_stats.dist and run_stats.dist > 0:
-        average_pace = (run_stats.time / 60) / (run_stats.dist / 1000)
+        # Calculate average pace in min/km
+        # time is in seconds, distance is in meters
+        # pace (min/km) = (seconds / meters) * (1000 meters/km) / (60 seconds/min)
+        average_pace = (run_stats.time / run_stats.dist) * 1000 / 60
 
     # Counts by type
     total_activities_all = db.query(func.count(Activity.id)).filter(Activity.user_id == current_user.id).scalar()

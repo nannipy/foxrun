@@ -279,7 +279,7 @@ export default function ActivityDetail() {
               <b>Tempo:</b> {formatDuration(activity.moving_time)}
             </div>
             <div>
-              <b>Ritmo:</b> {activity.average_speed ? formatPaceMinutes((1000 / activity.average_speed) / 60) : "-"}
+              <b>Ritmo:</b> {activity.average_speed ? formatPaceMinutes((1 / activity.average_speed) * 1000 / 60) : "-"}
             </div>
             <div>
               <b>Dislivello:</b> {activity.total_elevation_gain ? `${Math.round(activity.total_elevation_gain)} m` : "-"}
